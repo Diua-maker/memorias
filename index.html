@@ -1,0 +1,234 @@
+                   
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publicar Obra de Arte</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            max-width: 600px;
+            margin: auto;
+            background: #e9ecef;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            
+        }
+        input[type="text"], input[type="number"], select, textarea {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background-color: #36363b;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .artwork {
+            max-width: 600px;
+            margin: auto;
+            background: #e9ecef;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+
+        }
+        .artwork:hover{
+            transform: scale(1.05);
+        }
+        .artwork img, .artwork video {
+            max-width: 100%;
+            height: auto;
+        }
+        .likes-comments {
+            display: flex;
+            justify-content:left;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Publicar Obra de Arte</h1>
+<form id="artworkForm">
+    <input type="text" id="author" placeholder="Nome do Autor" required>
+    <input type="text" id="title" placeholder="Título da Obra" required>
+    <textarea id="description" placeholder="Descrição" required></textarea>
+    <input type="number" id="price" placeholder="Preço (MT)" required>
+    <select id="province" required>
+        <option value="">Selecionar Província</option>
+        <option value="Niassa">Niassa</option>
+        <option value="Cabo Delgado">Cabo Delgado</option>
+        <option value="Nampula">Nampula</option>
+        <option value="Zambézia">Zambézia</option>
+        <option value="Tete">Tete</option>
+        <option value="Manica">Manica</option>
+        <option value="Sofala">Sofala</option>
+        <option value="Gaza">Gaza</option>
+        <option value="Inhambane">Inhambane</option>
+        <option value="Maputo cidade">Maputo cidade</option>
+        <option value="Maputo província">Maputo província</option>
+    </select>
+    <input type="text" id="district" placeholder="Distrito/Cidade" required>
+    <input type="text" id="address" placeholder="Endereço (bairro/avenida)" required>
+    <input type="text" id="phone" placeholder="Telefone(+258)" maxlength="9">
+    <input type="file" id="media" accept=".jpg,.jpeg,.png,.mp4,.pdf" required />
+    <button type="submit"><i class='fas fa-upload'></i>Publicar</button>
+</form>
+
+<div id="artworksContainer"></div>
+
+<script>
+    const artworksContainer = document.getElementById('artworksContainer');
+    
+    document.getElementById('artworkForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const author = document.getElementById('author').value;
+        const title = document.getElementById('title').value;
+        const description = document.getElementById('description').value;
+        const price = document.getElementById('price').value;
+        const province = document.getElementById('province').value;
+        const district = document.getElementById('district').value;
+        const address = document.getElementById('address').value;
+        // Validar telefone
+        const phone = document.getElementById('phone').value.trim();
+        
+        if (phone && !/^82|83|84|85|86|87\d{7}$/.test(phone)) {
+            alert("O contacto deve começar com 82, 83, 84, 85, 86 ou 87.");
+            return; 
+        }
+
+        const mediaFile = document.getElementById('media').files[0];
+        
+        if (!mediaFile) return;
+
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            const artworkDiv = document.createElement('div');
+            artworkDiv.classList.add('artwork');
+            
+            artworkDiv.innerHTML = `
+                <h3><strong>${title} - ${author}</strong></h3>
+                <p>${description}</p>
+                <p><strong>Preço:</strong> ${price} MT </p> 
+                <p><strong>Província:</strong> ${province}</p>
+                <p><strong>Distrito/Cidade:</strong> ${district} </p> 
+                <p><strong>Endereço:</strong> ${address}</p>
+                <p> <strong>Contacto:</strong> ${phone}</p>
+                ${mediaFile.type.startsWith("image") ? `<img src="${e.target.result}" alt="${title}">` : `<video controls><source src="${e.target.result}" type="${mediaFile.type}"></video>`}
+                <div class='likes-comments'>
+                    <div><button class='like-btn'><i class='fas fa-thumbs-up'></i></button><span class='like-count'>0</span></div>
+                    <button class='comment-btn'><i class='fas fa-comment'></i></button>
+                </div>
+                <div class='comment-section' style='display:none;'>
+                    <textarea class='comment-box' placeholder='Escreva um comentário...'></textarea><br />
+                    <button class='send-comment'><i class='fas fa-paper-plane'></i>Enviar</button><br />
+                    <div class='comments-list'></div>
+                </div>`;
+                
+            artworksContainer.prepend(artworkDiv);
+
+            // Likes
+            let likeCount = artworkDiv.querySelector('.like-count');
+            
+            artworkDiv.querySelector('.like-btn').addEventListener('click', function() {
+                likeCount.textContent = parseInt(likeCount.textContent) + 1; 
+                this.disabled = true; // Desabilita botão após o like
+                this.style.cursor = 'not-allowed'; // Altera o cursor
+                this.style.opacity = '0.5'; // Torna o botão mais claro
+                this.classList.toggle('liked'); // Adiciona classe para efeito visual
+             });
+
+             // Comentários
+             artworkDiv.querySelector('.comment-btn').addEventListener('click', function() {
+                 const commentSection = artworkDiv.querySelector('.comment-section');
+                 commentSection.style.display = commentSection.style.display === 'none' ? 'block' : 'none';
+             });
+
+             artworkDiv.querySelector('.send-comment').addEventListener('click', function() {
+                 const commentBox = artworkDiv.querySelector('.comment-box');
+                 if (commentBox.value.trim()) {
+                     const commentsList = artworkDiv.querySelector('.comments-list');
+                     const newComment = document.createElement('p');
+                     newComment.textContent = commentBox.value.trim();
+                     commentsList.appendChild(newComment);
+                     commentBox.value = ''; // Limpa a caixa de comentário
+                 }
+             });
+         };
+         
+
+         reader.readAsDataURL(mediaFile);
+         this.reset(); // Limpa o formulário após publicação
+     });
+         // Configuração do Firebase
+    const firebaseConfig = {
+        apiKey: "SUA_API_KEY",
+        authDomain: "SEU_AUTH_DOMAIN",
+        projectId: "SEU_PROJECT_ID",
+        storageBucket: "SEU_STORAGE_BUCKET",
+        messagingSenderId: "SEU_MESSAGING_SENDER_ID",
+        appId: "SEU_APP_ID"
+    };
+
+    // Inicializando o Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const storage = firebase.storage();
+
+    document.getElementById('uploadButton').onclick = function() {
+        const file = document.getElementById('fileInput').files[0];
+        if (file) {
+            const storageRef = storage.ref('imagens/' + file.name);
+            const uploadTask = storageRef.put(file);
+
+            uploadTask.on('state_changed', 
+                (snapshot) => {
+                    // Progresso do upload
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    document.getElementById('uploadStatus').innerText = 'Progresso: ' + progress.toFixed(2) + '%';
+                }, 
+                (error) => {
+                    // Erro no upload
+                    console.error('Erro ao enviar:', error);
+                    document.getElementById('uploadStatus').innerText = 'Erro ao enviar imagem.';
+                }, 
+                () => {
+                    // Upload completo
+                    uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+                        console.log('Imagem disponível em:', downloadURL);
+                        document.getElementById('uploadStatus').innerText = 'Imagem enviada com sucesso!';
+                    });
+                }
+            );
+        } else {
+            alert("Por favor, escolha uma imagem para enviar.");
+        }
+    };
+</script>
+
+</body>
+</html>
+
