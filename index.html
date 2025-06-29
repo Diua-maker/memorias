@@ -19,6 +19,18 @@
                 }
             }
         }
+
+        // Suporte ao modo escuro
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
     </script>
     <style>
         .page { display: none; }
@@ -28,17 +40,30 @@
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
             gap: 12px; 
         }
-        .image-item {
+        .video-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap: 16px; 
+        }
+        .image-item, .video-item {
             aspect-ratio: 1;
             border-radius: 12px;
             overflow: hidden;
             cursor: pointer;
             transition: transform 0.3s ease;
         }
-        .image-item:hover {
+        .video-item {
+            aspect-ratio: 16/9;
+        }
+        .image-item:hover, .video-item:hover {
             transform: scale(1.05);
         }
         .image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .video-item video {
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -55,9 +80,44 @@
             border-color: #d4af37;
             background-color: rgba(212, 175, 55, 0.1);
         }
+        .slideshow-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            overflow: hidden;
+            border-radius: 12px;
+        }
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+        .slide.active {
+            opacity: 1;
+        }
+        .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .feature-card {
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .dark .bg-gray-50 { background-color: #0f172a; }
+        .dark .bg-white { background-color: #1e293b; }
+        .dark .text-gray-800 { color: #f1f5f9; }
+        .dark .text-gray-600 { color: #cbd5e1; }
+        .dark .text-gray-500 { color: #94a3b8; }
+        .dark .border-gray-300 { border-color: #475569; }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
     <!-- Header -->
     <header class="bg-ul-blue text-white sticky top-0 z-40 shadow-lg">
         <div class="container mx-auto px-4 py-3 flex items-center justify-between">
@@ -76,7 +136,7 @@
     </header>
 
     <!-- Navigation Menu -->
-    <nav id="menu" class="fixed top-0 right-0 h-full w-64 bg-white shadow-lg transform translate-x-full transition-transform duration-300 z-50">
+    <nav id="menu" class="fixed top-0 right-0 h-full w-64 bg-white dark:bg-gray-800 shadow-lg transform translate-x-full transition-transform duration-300 z-50">
         <div class="p-4 bg-ul-blue text-white">
             <div class="flex items-center justify-between">
                 <h2 class="text-lg font-bold">Menu</h2>
@@ -88,21 +148,39 @@
         <div class="p-4">
             <ul class="space-y-4">
                 <li>
-                    <button onclick="showPage('gallery')" class="flex items-center space-x-3 w-full text-left p-3 rounded-lg hover:bg-gray-100">
+                    <button onclick="showPage('home')" class="flex items-center space-x-3 w-full text-left p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <i class="fas fa-home text-ul-blue"></i>
+                        <span class="dark:text-white">Início</span>
+                    </button>
+                </li>
+                <li>
+                    <button onclick="showPage('gallery')" class="flex items-center space-x-3 w-full text-left p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
                         <i class="fas fa-images text-ul-blue"></i>
-                        <span>Memórias</span>
+                        <span class="dark:text-white">Galeria de Fotos</span>
                     </button>
                 </li>
                 <li>
-                    <button onclick="showPage('upload')" class="flex items-center space-x-3 w-full text-left p-3 rounded-lg hover:bg-gray-100">
+                    <button onclick="showPage('videos')" class="flex items-center space-x-3 w-full text-left p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <i class="fas fa-video text-ul-blue"></i>
+                        <span class="dark:text-white">Galeria de Vídeos</span>
+                    </button>
+                </li>
+                <li>
+                    <button onclick="showPage('upload')" class="flex items-center space-x-3 w-full text-left p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
                         <i class="fas fa-cloud-upload-alt text-ul-blue"></i>
-                        <span>Upload</span>
+                        <span class="dark:text-white">Upload de Fotos</span>
                     </button>
                 </li>
                 <li>
-                    <button onclick="showPage('about')" class="flex items-center space-x-3 w-full text-left p-3 rounded-lg hover:bg-gray-100">
+                    <button onclick="showPage('upload-video')" class="flex items-center space-x-3 w-full text-left p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <i class="fas fa-film text-ul-blue"></i>
+                        <span class="dark:text-white">Upload de Vídeos</span>
+                    </button>
+                </li>
+                <li>
+                    <button onclick="showPage('about')" class="flex items-center space-x-3 w-full text-left p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
                         <i class="fas fa-info-circle text-ul-blue"></i>
-                        <span>Sobre</span>
+                        <span class="dark:text-white">Sobre</span>
                     </button>
                 </li>
             </ul>
@@ -112,13 +190,105 @@
     <!-- Menu Overlay -->
     <div id="menuOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
 
+    <!-- Home Page -->
+    <div id="home" class="page active">
+        <div class="container mx-auto px-4 py-6">
+            <!-- Welcome Section -->
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 dark:text-white mb-4">
+                    Bem-vindos às Memórias do Curso
+                </h2>
+                <p class="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
+                    Explore, compartilhe e preserve os momentos especiais do curso de Educação Visual da Universidade Licungo. 
+                    Uma plataforma dedicada a celebrar a criatividade e o talento dos nossos estudantes e professores.
+                </p>
+            </div>
+
+            <!-- Slideshow -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-4 text-center">
+                    <i class="fas fa-camera text-ul-blue mr-2"></i>
+                    Memórias em Destaque
+                </h3>
+                <div id="slideshow" class="slideshow-container bg-gray-200 dark:bg-gray-700">
+                    <div id="loadingSlideshow" class="flex items-center justify-center h-full">
+                        <i class="fas fa-spinner fa-spin text-4xl text-ul-blue"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feature Cards -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="feature-card bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 cursor-pointer" onclick="showPage('gallery')">
+                    <div class="text-center">
+                        <i class="fas fa-images text-4xl text-ul-blue mb-4"></i>
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">Galeria de Fotos</h3>
+                        <p class="text-gray-600 dark:text-gray-300 text-sm">
+                            Explore uma coleção de fotografias dos projetos artísticos, exposições e momentos especiais do curso.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="feature-card bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 cursor-pointer" onclick="showPage('videos')">
+                    <div class="text-center">
+                        <i class="fas fa-video text-4xl text-ul-blue mb-4"></i>
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">Galeria de Vídeos</h3>
+                        <p class="text-gray-600 dark:text-gray-300 text-sm">
+                            Assista a vídeos documentando processos criativos, apresentações e eventos do curso.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="feature-card bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 cursor-pointer" onclick="showPage('upload')">
+                    <div class="text-center">
+                        <i class="fas fa-cloud-upload-alt text-4xl text-ul-blue mb-4"></i>
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">Compartilhar Fotos</h3>
+                        <p class="text-gray-600 dark:text-gray-300 text-sm">
+                            Faça upload das suas fotografias e contribua para o arquivo de memórias do curso.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="feature-card bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 cursor-pointer" onclick="showPage('upload-video')">
+                    <div class="text-center">
+                        <i class="fas fa-film text-4xl text-ul-blue mb-4"></i>
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">Compartilhar Vídeos</h3>
+                        <p class="text-gray-600 dark:text-gray-300 text-sm">
+                            Envie seus vídeos documentando processos criativos e eventos do curso.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="feature-card bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 cursor-pointer" onclick="showPage('about')">
+                    <div class="text-center">
+                        <i class="fas fa-info-circle text-4xl text-ul-blue mb-4"></i>
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">Sobre a Plataforma</h3>
+                        <p class="text-gray-600 dark:text-gray-300 text-sm">
+                            Conheça mais sobre esta iniciativa e as políticas de uso da plataforma.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="feature-card bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                    <div class="text-center">
+                        <i class="fas fa-users text-4xl text-ul-blue mb-4"></i>
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">Comunidade</h3>
+                        <p class="text-gray-600 dark:text-gray-300 text-sm">
+                            Conecte-se com colegas, professores e ex-alunos através do compartilhamento de memórias.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Gallery Page -->
-    <div id="gallery" class="page active">
+    <div id="gallery" class="page">
         <div class="container mx-auto px-4 py-6">
             <div class="flex items-center justify-between mb-6">
-                <h2 class="text-2xl font-bold text-gray-800">
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-white">
                     <i class="fas fa-images text-ul-blue mr-2"></i>
-                    Memórias do Curso
+                    Galeria de Fotos
                 </h2>
                 <div class="flex space-x-2">
                     <button onclick="refreshGallery()" class="bg-ul-blue text-white px-4 py-2 rounded-lg">
@@ -132,17 +302,54 @@
             
             <div id="loadingGallery" class="text-center py-8">
                 <i class="fas fa-spinner fa-spin text-4xl text-ul-blue mb-4"></i>
-                <p class="text-gray-600">Carregando imagens...</p>
+                <p class="text-gray-600 dark:text-gray-300">Carregando imagens...</p>
             </div>
             
             <div id="galleryGrid" class="image-grid hidden"></div>
             
             <div id="emptyGallery" class="text-center py-12 hidden">
                 <i class="fas fa-images text-6xl text-gray-300 mb-4"></i>
-                <h3 class="text-xl font-semibold text-gray-600 mb-2">Nenhuma imagem encontrada</h3>
-                <p class="text-gray-500 mb-4">Seja o primeiro a compartilhar uma memória!</p>
+                <h3 class="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">Nenhuma imagem encontrada</h3>
+                <p class="text-gray-500 dark:text-gray-400 mb-4">Seja o primeiro a compartilhar uma memória!</p>
                 <button onclick="showPage('upload')" class="bg-ul-blue text-white px-6 py-3 rounded-lg">
                     <i class="fas fa-cloud-upload-alt mr-2"></i>
+                    Fazer Upload
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Videos Page -->
+    <div id="videos" class="page">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-white">
+                    <i class="fas fa-video text-ul-blue mr-2"></i>
+                    Galeria de Vídeos
+                </h2>
+                <div class="flex space-x-2">
+                    <button onclick="refreshVideos()" class="bg-ul-blue text-white px-4 py-2 rounded-lg">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                    <button onclick="showPage('upload-video')" class="bg-ul-gold text-white px-4 py-2 rounded-lg">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="loadingVideos" class="text-center py-8">
+                <i class="fas fa-spinner fa-spin text-4xl text-ul-blue mb-4"></i>
+                <p class="text-gray-600 dark:text-gray-300">Carregando vídeos...</p>
+            </div>
+            
+            <div id="videosGrid" class="video-grid hidden"></div>
+            
+            <div id="emptyVideos" class="text-center py-12 hidden">
+                <i class="fas fa-video text-6xl text-gray-300 mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-2">Nenhum vídeo encontrado</h3>
+                <p class="text-gray-500 dark:text-gray-400 mb-4">Seja o primeiro a compartilhar um vídeo!</p>
+                <button onclick="showPage('upload-video')" class="bg-ul-blue text-white px-6 py-3 rounded-lg">
+                    <i class="fas fa-film mr-2"></i>
                     Fazer Upload
                 </button>
             </div>
@@ -156,17 +363,17 @@
                 <button onclick="showPage('gallery')" class="text-ul-blue mr-4 text-2xl">
                     <i class="fas fa-arrow-left"></i>
                 </button>
-                <h2 class="text-2xl font-bold text-gray-800">
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-white">
                     <i class="fas fa-cloud-upload-alt text-ul-blue mr-2"></i>
-                    Upload de Imagem
+                    Upload de Fotos
                 </h2>
             </div>
 
-            <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
                 <div id="uploadArea" class="upload-area p-8 text-center">
                     <i class="fas fa-cloud-upload-alt text-4xl text-ul-blue mb-4"></i>
-                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Selecione ou arraste uma imagem</h3>
-                    <p class="text-gray-500 mb-4">PNG, JPG, GIF até 100MB</p>
+                    <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">Selecione ou arraste uma imagem</h3>
+                    <p class="text-gray-500 dark:text-gray-400 mb-4">PNG, JPG, GIF até 100MB</p>
                     <input type="file" id="fileInput" accept="image/*" class="hidden">
                     <button onclick="document.getElementById('fileInput').click()" class="bg-ul-blue text-white px-6 py-3 rounded-lg">
                         <i class="fas fa-folder-open mr-2"></i>
@@ -175,12 +382,12 @@
                 </div>
 
                 <div id="uploadPreview" class="mt-6 hidden">
-                    <h4 class="font-semibold text-gray-700 mb-3">Pré-visualização:</h4>
+                    <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-3">Pré-visualização:</h4>
                     <div class="flex items-start space-x-4">
                         <img id="previewImage" class="w-24 h-24 object-cover rounded-lg">
                         <div class="flex-1">
                             <input type="text" id="imageTitle" placeholder="Título da imagem (opcional)" 
-                                   class="w-full p-3 border border-gray-300 rounded-lg mb-3 text-base">
+                                   class="w-full p-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg mb-3 text-base">
                             <div class="flex space-x-3">
                                 <button onclick="uploadImage()" id="uploadBtn" 
                                         class="bg-ul-gold text-white px-6 py-3 rounded-lg flex-1">
@@ -198,11 +405,73 @@
 
                 <div id="uploadProgress" class="mt-6 hidden">
                     <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm font-medium text-gray-700">Enviando...</span>
-                        <span id="progressPercent" class="text-sm text-gray-600">0%</span>
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Enviando...</span>
+                        <span id="progressPercent" class="text-sm text-gray-600 dark:text-gray-400">0%</span>
                     </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                         <div id="progressBar" class="bg-ul-blue h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Video Page -->
+    <div id="upload-video" class="page">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center mb-6">
+                <button onclick="showPage('videos')" class="text-ul-blue mr-4 text-2xl">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-white">
+                    <i class="fas fa-film text-ul-blue mr-2"></i>
+                    Upload de Vídeos
+                </h2>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                <div id="uploadVideoArea" class="upload-area p-8 text-center">
+                    <i class="fas fa-film text-4xl text-ul-blue mb-4"></i>
+                    <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">Selecione ou arraste um vídeo</h3>
+                    <p class="text-gray-500 dark:text-gray-400 mb-4">MP4, AVI, MOV até 500MB</p>
+                    <input type="file" id="videoFileInput" accept="video/*" class="hidden">
+                    <button onclick="document.getElementById('videoFileInput').click()" class="bg-ul-blue text-white px-6 py-3 rounded-lg">
+                        <i class="fas fa-folder-open mr-2"></i>
+                        Escolher Arquivo
+                    </button>
+                </div>
+
+                <div id="uploadVideoPreview" class="mt-6 hidden">
+                    <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-3">Pré-visualização:</h4>
+                    <div class="flex items-start space-x-4">
+                        <video id="previewVideo" class="w-48 h-28 object-cover rounded-lg" controls></video>
+                        <div class="flex-1">
+                            <input type="text" id="videoTitle" placeholder="Título do vídeo (opcional)" 
+                                   class="w-full p-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg mb-3 text-base">
+                            <textarea id="videoDescription" placeholder="Descrição do vídeo (opcional)" 
+                                   class="w-full p-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg mb-3 text-base h-20 resize-none"></textarea>
+                            <div class="flex space-x-3">
+                                <button onclick="uploadVideo()" id="uploadVideoBtn" 
+                                        class="bg-ul-gold text-white px-6 py-3 rounded-lg flex-1">
+                                    <i class="fas fa-upload mr-2"></i>
+                                    Enviar
+                                </button>
+                                <button onclick="cancelVideoUpload()" class="bg-gray-500 text-white px-6 py-3 rounded-lg">
+                                    <i class="fas fa-times mr-2"></i>
+                                    Cancelar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="uploadVideoProgress" class="mt-6 hidden">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Enviando vídeo...</span>
+                        <span id="videoProgressPercent" class="text-sm text-gray-600 dark:text-gray-400">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div id="videoProgressBar" class="bg-ul-blue h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
                     </div>
                 </div>
             </div>
@@ -213,54 +482,55 @@
     <div id="about" class="page">
         <div class="container mx-auto px-4 py-6">
             <div class="flex items-center mb-6">
-                <button onclick="showPage('gallery')" class="text-ul-blue mr-4 text-2xl">
+                <button onclick="showPage('home')" class="text-ul-blue mr-4 text-2xl">
                     <i class="fas fa-arrow-left"></i>
                 </button>
-                <h2 class="text-2xl font-bold text-gray-800">
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-white">
                     <i class="fas fa-info-circle text-ul-blue mr-2"></i>
-                    Sobre a Galeria
+                    Sobre a Plataforma
                 </h2>
             </div>
 
-            <div class="bg-white rounded-lg shadow-lg p-6 space-y-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 space-y-6">
                 <div class="text-center">
                     <img src="https://pfst.cf2.poecdn.net/base/image/5556b804b06b3c61cb958867ebe7b6cc285f6340de2c7660f5493aa5760b298e?w=1280&h=1152" 
                          alt="UL Logo" class="w-24 h-24 mx-auto rounded-full bg-gray-100 p-2 mb-4">
-                    <h3 class="text-xl font-bold text-gray-800">Memórias Educação Visual UL</h3>
-                    <p class="text-gray-600">Curso de Educação Visual - Universidade Licungo</p>
+                    <h3 class="text-xl font-bold text-gray-800 dark:text-white">Memórias Educação Visual UL</h3>
+                    <p class="text-gray-600 dark:text-gray-300">Curso de Educação Visual - Universidade Licungo</p>
                 </div>
 
-                <div class="border-t pt-6">
-                    <h4 class="font-semibold text-gray-800 mb-3">
+                <div class="border-t dark:border-gray-600 pt-6">
+                    <h4 class="font-semibold text-gray-800 dark:text-white mb-3">
                         <i class="fas fa-camera text-ul-blue mr-2"></i>
                         Sobre esta aplicação
                     </h4>
-                    <p class="text-gray-600 leading-relaxed">
+                    <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
                         Esta plataforma foi desenvolvida para os estudantes e professores do curso de Educação Visual da Universidade Licungo compartilharem 
-                        e preservarem memórias de projetos artísticos, exposições, trabalhos acadêmicos e momentos especiais do curso.
+                        e preservarem memórias de projetos artísticos, exposições, trabalhos acadêmicos e momentos especiais do curso através de fotos e vídeos.
                     </p>
                 </div>
 
-                <div class="border-t pt-6">
-                    <h4 class="font-semibold text-gray-800 mb-3">
+                <div class="border-t dark:border-gray-600 pt-6">
+                    <h4 class="font-semibold text-gray-800 dark:text-white mb-3">
                         <i class="fas fa-shield-alt text-ul-blue mr-2"></i>
                         Política de Uso
                     </h4>
-                    <ul class="text-gray-600 space-y-2 text-sm">
-                        <li>• Apenas imagens relacionadas ao curso de Educação Visual</li>
-                        <li>• Respeite os direitos autorais das imagens</li>
-                        <li>• Máximo de 100MB por imagem</li>
-                        <li>• Formatos aceitos: PNG, JPG, GIF</li>
+                    <ul class="text-gray-600 dark:text-gray-300 space-y-2 text-sm">
+                        <li>• Apenas conteúdo relacionado ao curso de Educação Visual</li>
+                        <li>• Respeite os direitos autorais das imagens e vídeos</li>
+                        <li>• Máximo de 100MB por imagem e 500MB por vídeo</li>
+                        <li>• Formatos de imagem aceitos: PNG, JPG, GIF</li>
+                        <li>• Formatos de vídeo aceitos: MP4, AVI, MOV</li>
                     </ul>
                 </div>
 
-                <div class="border-t pt-6">
-                    <h4 class="font-semibold text-gray-800 mb-3">
+                <div class="border-t dark:border-gray-600 pt-6">
+                    <h4 class="font-semibold text-gray-800 dark:text-white mb-3">
                         <i class="fas fa-code text-ul-blue mr-2"></i>
                         Informações Técnicas
                     </h4>
-                    <p class="text-gray-600 text-sm">
-                        Desenvolvido com tecnologias web modernas e Supabase para armazenamento seguro e confiável.
+                    <p class="text-gray-600 dark:text-gray-300 text-sm">
+                        Desenvolvido com tecnologias web modernas e Supabase para armazenamento seguro e confiável de imagens e vídeos.
                     </p>
                 </div>
             </div>
@@ -275,10 +545,10 @@
                     <i class="fas fa-times"></i>
                 </button>
                 
-                <div class="bg-white rounded-lg overflow-hidden">
+                <div class="bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
                     <img id="modalImage" class="w-full max-h-96 object-contain">
                     <div class="p-4">
-                        <h3 id="modalTitle" class="text-lg font-semibold text-gray-800 mb-3"></h3>
+                        <h3 id="modalTitle" class="text-lg font-semibold text-gray-800 dark:text-white mb-3"></h3>
                         <div class="flex space-x-3">
                             <button onclick="downloadImage()" class="bg-ul-blue text-white px-6 py-3 rounded-lg flex-1">
                                 <i class="fas fa-download mr-2"></i>
@@ -294,16 +564,53 @@
         </div>
     </div>
 
-    <script>
-        // Configuração do Supabase
-        const SUPABASE_URL = 'https://gatkddtomkzcciqhkebt.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhdGtkZHRvbWt6Y2NpcWhrZWJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTExMzc5NzEsImV4cCI6MjA2NjcxMzk3MX0.FjnzSOhtz-eO6D_tttHolVo4M36FjlomnYu_qxnfiQ0 ';
-        
-        // Para demonstração, vamos usar uma simulação
-        let supabase = null;
-        let images = [];
+    <!-- Video Player Modal -->
+    <div id="videoModal" class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden modal">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="relative max-w-5xl w-full">
+                <button onclick="closeVideoModal()" class="absolute top-4 right-4 text-white text-3xl z-10 bg-black bg-opacity-50 rounded-full w-12 h-12 flex items-center justify-center">
+                    <i class="fas fa-times"></i>
+                </button>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
+                    <video id="modalVideo" class="w-full max-h-96" controls></video>
+                    <div class="p-4">
+                        <h3 id="modalVideoTitle" class="text-lg font-semibold text-gray-800 dark:text-white mb-2"></h3>
+                        <p id="modalVideoDescription" class="text-gray-600 dark:text-gray-300 mb-3 text-sm"></p>
+                        <div class="flex space-x-3">
+                            <button onclick="downloadVideo()" class="bg-ul-blue text-white px-6 py-3 rounded-lg flex-1">
+                                <i class="fas fa-download mr-2"></i>
+                                Baixar
+                            </button>
+                            <button onclick="shareVideo()" class="bg-ul-gold text-white px-6 py-3 rounded-lg">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        // Simulação de dados para demonstração
+    <script>
+        // Configuração do Supabase para Imagens
+        const SUPABASE_IMAGES_URL = 'https://gatkddtomkzcciqhkebt.supabase.co';
+        const SUPABASE_IMAGES_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhdGtkZHRvbWt6Y2NpcWhrZWJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTExMzc5NzEsImV4cCI6MjA2NjcxMzk3MX0.FjnzSOhtz-eO6D_tttHolVo4M36FjlomnYu_qxnfiQ0';
+        
+        // Configuração do Supabase para Vídeos (substitua pelas suas credenciais)
+        const SUPABASE_VIDEOS_URL = 'https://dwgklblrxbouxylztsth.supabase.co';
+        const SUPABASE_VIDEOS_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3Z2tsYmxyeGJvdXh5bHp0c3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTExNzc3ODksImV4cCI6MjA2Njc1Mzc4OX0.O-N3qZaxenggXfGTjIXfHxfRggWi_z36LdZKajvksI0 ';
+        
+        // Clientes Supabase
+        let supabaseImages = null;
+        let supabaseVideos = null;
+        
+        let images = [];
+        let videos = [];
+        let slideshowInterval = null;
+        let currentSlide = 0;
+
+        // Dados de demonstração
         const demoImages = [
             {
                 id: 1,
@@ -322,6 +629,37 @@
                 title: 'Laboratório',
                 url: 'https://picsum.photos/400/400?random=3',
                 created_at: new Date().toISOString()
+            },
+            {
+                id: 4,
+                title: 'Exposição de Arte',
+                url: 'https://picsum.photos/400/400?random=4',
+                created_at: new Date().toISOString()
+            },
+            {
+                id: 5,
+                title: 'Sala de Aula',
+                url: 'https://picsum.photos/400/400?random=5',
+                created_at: new Date().toISOString()
+            }
+        ];
+
+        const demoVideos = [
+            {
+                id: 1,
+                title: 'Processo Criativo - Pintura',
+                description: 'Documentação do processo de criação de uma obra de arte.',
+                url: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4',
+                thumbnail: 'https://picsum.photos/320/180?random=10',
+                created_at: new Date().toISOString()
+            },
+            {
+                id: 2,
+                title: 'Exposição Final 2024',
+                description: 'Registro da exposição de final de ano dos alunos.',
+                url: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_2mb.mp4',
+                thumbnail: 'https://picsum.photos/320/180?random=11',
+                created_at: new Date().toISOString()
             }
         ];
 
@@ -329,21 +667,32 @@
         document.addEventListener('DOMContentLoaded', function() {
             initSupabase();
             loadGallery();
+            loadVideos();
             setupEventListeners();
+            initSlideshow();
         });
 
         function initSupabase() {
             try {
-                // Em produção, substitua pelas suas credenciais do Supabase
-                if (SUPABASE_URL !== 'https://your-project.supabase.co') {
-                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                // Configurar cliente para imagens
+                if (SUPABASE_IMAGES_URL !== 'https://your-project.supabase.co') {
+                    supabaseImages = window.supabase.createClient(SUPABASE_IMAGES_URL, SUPABASE_IMAGES_ANON_KEY);
                 } else {
-                    console.log('Usando dados de demonstração - Configure o Supabase para produção');
+                    console.log('Usando dados de demonstração para imagens - Configure o Supabase para produção');
                     images = [...demoImages];
+                }
+
+                // Configurar cliente para vídeos
+                if (SUPABASE_VIDEOS_URL !== 'https://your-videos-project.supabase.co') {
+                    supabaseVideos = window.supabase.createClient(SUPABASE_VIDEOS_URL, SUPABASE_VIDEOS_ANON_KEY);
+                } else {
+                    console.log('Usando dados de demonstração para vídeos - Configure o Supabase para produção');
+                    videos = [...demoVideos];
                 }
             } catch (error) {
                 console.error('Erro ao inicializar Supabase:', error);
                 images = [...demoImages];
+                videos = [...demoVideos];
             }
         }
 
@@ -353,13 +702,13 @@
             document.getElementById('closeMenu').addEventListener('click', closeMenu);
             document.getElementById('menuOverlay').addEventListener('click', closeMenu);
 
-            // Upload
+            // Upload de imagens
             const fileInput = document.getElementById('fileInput');
             const uploadArea = document.getElementById('uploadArea');
 
             fileInput.addEventListener('change', handleFileSelect);
 
-            // Drag and drop
+            // Drag and drop para imagens
             uploadArea.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 uploadArea.classList.add('dragover');
@@ -377,6 +726,31 @@
                     handleFile(files[0]);
                 }
             });
+
+            // Upload de vídeos
+            const videoFileInput = document.getElementById('videoFileInput');
+            const uploadVideoArea = document.getElementById('uploadVideoArea');
+
+            videoFileInput.addEventListener('change', handleVideoFileSelect);
+
+            // Drag and drop para vídeos
+            uploadVideoArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadVideoArea.classList.add('dragover');
+            });
+
+            uploadVideoArea.addEventListener('dragleave', () => {
+                uploadVideoArea.classList.remove('dragover');
+            });
+
+            uploadVideoArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadVideoArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleVideoFile(files[0]);
+                }
+            });
         }
 
         function showPage(pageId) {
@@ -386,6 +760,10 @@
             
             if (pageId === 'gallery') {
                 loadGallery();
+            } else if (pageId === 'videos') {
+                loadVideos();
+            } else if (pageId === 'home') {
+                initSlideshow();
             }
         }
 
@@ -399,6 +777,65 @@
             document.getElementById('menuOverlay').classList.add('hidden');
         }
 
+        // Funções do Slideshow
+        function initSlideshow() {
+            if (images.length === 0) {
+                loadGallery().then(() => {
+                    if (images.length > 0) {
+                        createSlideshow();
+                    }
+                });
+            } else {
+                createSlideshow();
+            }
+        }
+
+        function createSlideshow() {
+            const slideshowEl = document.getElementById('slideshow');
+            const loadingEl = document.getElementById('loadingSlideshow');
+            
+            if (images.length === 0) {
+                loadingEl.innerHTML = '<p class="text-gray-500">Nenhuma imagem disponível para slideshow</p>';
+                return;
+            }
+
+            loadingEl.style.display = 'none';
+            slideshowEl.innerHTML = '';
+
+            // Embaralhar imagens para slideshow aleatório
+            const shuffledImages = [...images].sort(() => Math.random() - 0.5).slice(0, 5);
+
+            shuffledImages.forEach((image, index) => {
+                const slide = document.createElement('div');
+                slide.className = `slide ${index === 0 ? 'active' : ''}`;
+                slide.innerHTML = `
+                    <img src="${image.url}" alt="${image.title || 'Imagem'}" loading="lazy">
+                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                        <h3 class="text-white font-semibold">${image.title || 'Sem título'}</h3>
+                    </div>
+                `;
+                slideshowEl.appendChild(slide);
+            });
+
+            startSlideshow();
+        }
+
+        function startSlideshow() {
+            const slides = document.querySelectorAll('#slideshow .slide');
+            if (slides.length <= 1) return;
+
+            if (slideshowInterval) {
+                clearInterval(slideshowInterval);
+            }
+
+            slideshowInterval = setInterval(() => {
+                slides[currentSlide].classList.remove('active');
+                currentSlide = (currentSlide + 1) % slides.length;
+                slides[currentSlide].classList.add('active');
+            }, 4000);
+        }
+
+        // Funções da Galeria de Imagens
         async function loadGallery() {
             const loadingEl = document.getElementById('loadingGallery');
             const gridEl = document.getElementById('galleryGrid');
@@ -409,8 +846,8 @@
             emptyEl.classList.add('hidden');
 
             try {
-                if (supabase) {
-                    const { data, error } = await supabase
+                if (supabaseImages) {
+                    const { data, error } = await supabaseImages
                         .from('images')
                         .select('*')
                         .order('created_at', { ascending: false });
@@ -418,7 +855,6 @@
                     if (error) throw error;
                     images = data || [];
                 } else {
-                    // Simulação de delay para demonstração
                     await new Promise(resolve => setTimeout(resolve, 1000));
                 }
 
@@ -443,7 +879,7 @@
 
             images.forEach(image => {
                 const imageEl = document.createElement('div');
-                imageEl.className = 'image-item bg-gray-200';
+                imageEl.className = 'image-item bg-gray-200 dark:bg-gray-700';
                 imageEl.innerHTML = `
                     <img src="${image.url}" alt="${image.title || 'Imagem'}" loading="lazy">
                 `;
@@ -456,6 +892,75 @@
             loadGallery();
         }
 
+        // Funções da Galeria de Vídeos
+        async function loadVideos() {
+            const loadingEl = document.getElementById('loadingVideos');
+            const gridEl = document.getElementById('videosGrid');
+            const emptyEl = document.getElementById('emptyVideos');
+
+            loadingEl.classList.remove('hidden');
+            gridEl.classList.add('hidden');
+            emptyEl.classList.add('hidden');
+
+            try {
+                if (supabaseVideos) {
+                    const { data, error } = await supabaseVideos
+                        .from('videos')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+
+                    if (error) throw error;
+                    videos = data || [];
+                } else {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+
+                loadingEl.classList.add('hidden');
+
+                if (videos.length === 0) {
+                    emptyEl.classList.remove('hidden');
+                } else {
+                    renderVideos();
+                    gridEl.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar vídeos:', error);
+                loadingEl.classList.add('hidden');
+                emptyEl.classList.remove('hidden');
+            }
+        }
+
+        function renderVideos() {
+            const gridEl = document.getElementById('videosGrid');
+            gridEl.innerHTML = '';
+
+            videos.forEach(video => {
+                const videoEl = document.createElement('div');
+                videoEl.className = 'video-item bg-gray-200 dark:bg-gray-700 relative';
+                videoEl.innerHTML = `
+                    <div class="relative w-full h-full">
+                        ${video.thumbnail ? 
+                            `<img src="${video.thumbnail}" alt="${video.title || 'Vídeo'}" class="w-full h-full object-cover">` :
+                            `<video src="${video.url}" class="w-full h-full object-cover" preload="metadata"></video>`
+                        }
+                        <div class="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                            <i class="fas fa-play-circle text-4xl text-white"></i>
+                        </div>
+                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-3">
+                            <h3 class="text-white font-medium text-sm truncate">${video.title || 'Sem título'}</h3>
+                        </div>
+                    </div>
+                `;
+                videoEl.addEventListener('click', () => openVideoModal(video));
+                gridEl.appendChild(videoEl);
+            });
+        }
+
+        function refreshVideos() {
+            loadVideos();
+        }
+
+        // Funções de Upload de Imagens
         function handleFileSelect(e) {
             const file = e.target.files[0];
             if (file) {
@@ -497,22 +1002,21 @@
             progressEl.classList.remove('hidden');
 
             try {
-                if (supabase) {
-                    // Upload real para Supabase
+                if (supabaseImages) {
                     const file = fileInput.files[0];
                     const fileName = `${Date.now()}-${file.name}`;
                     
-                    const { data, error } = await supabase.storage
+                    const { data, error } = await supabaseImages.storage
                         .from('images')
                         .upload(fileName, file);
 
                     if (error) throw error;
 
-                    const { data: urlData } = supabase.storage
+                    const { data: urlData } = supabaseImages.storage
                         .from('images')
                         .getPublicUrl(fileName);
 
-                    const { error: dbError } = await supabase
+                    const { error: dbError } = await supabaseImages
                         .from('images')
                         .insert([{
                             title: titleInput.value || 'Sem título',
@@ -522,7 +1026,6 @@
 
                     if (dbError) throw dbError;
                 } else {
-                    // Simulação para demonstração
                     await simulateUpload(progressBar, progressPercent);
                     
                     const newImage = {
@@ -534,24 +1037,15 @@
                     images.unshift(newImage);
                 }
 
-                // Reset form
                 cancelUpload();
-                alert('Memória enviada com sucesso!');
+                alert('Foto enviada com sucesso!');
                 showPage('gallery');
             } catch (error) {
                 console.error('Erro no upload:', error);
-                alert('Erro ao enviar memória: ' + error.message);
+                alert('Erro ao enviar foto: ' + error.message);
             } finally {
                 uploadBtn.disabled = false;
                 progressEl.classList.add('hidden');
-            }
-        }
-
-        async function simulateUpload(progressBar, progressPercent) {
-            for (let i = 0; i <= 100; i += 10) {
-                await new Promise(resolve => setTimeout(resolve, 100));
-                progressBar.style.width = i + '%';
-                progressPercent.textContent = i + '%';
             }
         }
 
@@ -562,7 +1056,117 @@
             document.getElementById('uploadArea').style.display = 'block';
         }
 
+        // Funções de Upload de Vídeos
+        function handleVideoFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleVideoFile(file);
+            }
+        }
+
+        function handleVideoFile(file) {
+            if (!file.type.startsWith('video/')) {
+                alert('Por favor, selecione apenas arquivos de vídeo.');
+                return;
+            }
+
+            if (file.size > 500 * 1024 * 1024) {
+                alert('Arquivo muito grande. Máximo 500MB.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('previewVideo').src = e.target.result;
+                document.getElementById('uploadVideoPreview').classList.remove('hidden');
+                document.getElementById('uploadVideoArea').style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function uploadVideo() {
+            const fileInput = document.getElementById('videoFileInput');
+            const titleInput = document.getElementById('videoTitle');
+            const descriptionInput = document.getElementById('videoDescription');
+            const uploadBtn = document.getElementById('uploadVideoBtn');
+            const progressEl = document.getElementById('uploadVideoProgress');
+            const progressBar = document.getElementById('videoProgressBar');
+            const progressPercent = document.getElementById('videoProgressPercent');
+
+            if (!fileInput.files[0]) return;
+
+            uploadBtn.disabled = true;
+            progressEl.classList.remove('hidden');
+
+            try {
+                if (supabaseVideos) {
+                    const file = fileInput.files[0];
+                    const fileName = `${Date.now()}-${file.name}`;
+                    
+                    const { data, error } = await supabaseVideos.storage
+                        .from('videos')
+                        .upload(fileName, file);
+
+                    if (error) throw error;
+
+                    const { data: urlData } = supabaseVideos.storage
+                        .from('videos')
+                        .getPublicUrl(fileName);
+
+                    const { error: dbError } = await supabaseVideos
+                        .from('videos')
+                        .insert([{
+                            title: titleInput.value || 'Sem título',
+                            description: descriptionInput.value || '',
+                            url: urlData.publicUrl,
+                            file_name: fileName
+                        }]);
+
+                    if (dbError) throw dbError;
+                } else {
+                    await simulateUpload(progressBar, progressPercent);
+                    
+                    const newVideo = {
+                        id: Date.now(),
+                        title: titleInput.value || 'Novo Vídeo',
+                        description: descriptionInput.value || '',
+                        url: document.getElementById('previewVideo').src,
+                        created_at: new Date().toISOString()
+                    };
+                    videos.unshift(newVideo);
+                }
+
+                cancelVideoUpload();
+                alert('Vídeo enviado com sucesso!');
+                showPage('videos');
+            } catch (error) {
+                console.error('Erro no upload:', error);
+                alert('Erro ao enviar vídeo: ' + error.message);
+            } finally {
+                uploadBtn.disabled = false;
+                progressEl.classList.add('hidden');
+            }
+        }
+
+        function cancelVideoUpload() {
+            document.getElementById('videoFileInput').value = '';
+            document.getElementById('videoTitle').value = '';
+            document.getElementById('videoDescription').value = '';
+            document.getElementById('uploadVideoPreview').classList.add('hidden');
+            document.getElementById('uploadVideoArea').style.display = 'block';
+        }
+
+        async function simulateUpload(progressBar, progressPercent) {
+            for (let i = 0; i <= 100; i += 10) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                progressBar.style.width = i + '%';
+                progressPercent.textContent = i + '%';
+            }
+        }
+
+        // Modais
         let currentImage = null;
+        let currentVideo = null;
 
         function openImageModal(image) {
             currentImage = image;
@@ -576,12 +1180,40 @@
             currentImage = null;
         }
 
+        function openVideoModal(video) {
+            currentVideo = video;
+            document.getElementById('modalVideo').src = video.url;
+            document.getElementById('modalVideoTitle').textContent = video.title || 'Sem título';
+            document.getElementById('modalVideoDescription').textContent = video.description || '';
+            document.getElementById('videoModal').classList.remove('hidden');
+        }
+
+        function closeVideoModal() {
+            const modalVideo = document.getElementById('modalVideo');
+            modalVideo.pause();
+            modalVideo.src = '';
+            document.getElementById('videoModal').classList.add('hidden');
+            currentVideo = null;
+        }
+
         function downloadImage() {
             if (!currentImage) return;
 
             const link = document.createElement('a');
             link.href = currentImage.url;
             link.download = currentImage.title || 'imagem';
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function downloadVideo() {
+            if (!currentVideo) return;
+
+            const link = document.createElement('a');
+            link.href = currentVideo.url;
+            link.download = currentVideo.title || 'video';
             link.target = '_blank';
             document.body.appendChild(link);
             link.click();
@@ -597,7 +1229,6 @@
                     url: currentImage.url
                 });
             } else {
-                // Fallback para navegadores sem suporte ao Web Share API
                 navigator.clipboard.writeText(currentImage.url).then(() => {
                     alert('Link da imagem copiado para a área de transferência!');
                 }).catch(() => {
@@ -606,14 +1237,31 @@
             }
         }
 
-        // Fechar modal ao pressionar ESC
+        function shareVideo() {
+            if (!currentVideo) return;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: currentVideo.title || 'Vídeo do Curso de Educação Visual UL',
+                    url: currentVideo.url
+                });
+            } else {
+                navigator.clipboard.writeText(currentVideo.url).then(() => {
+                    alert('Link do vídeo copiado para a área de transferência!');
+                }).catch(() => {
+                    alert('Não foi possível compartilhar o vídeo.');
+                });
+            }
+        }
+
+        // Event listeners para teclado
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeImageModal();
+                closeVideoModal();
                 closeMenu();
             }
         });
     </script>
 </body>
 </html>
- 
